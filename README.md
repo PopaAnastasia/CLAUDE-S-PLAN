@@ -1,0 +1,2 @@
+# CLAUDE-S-PLAN
+Hacklanta 2026
