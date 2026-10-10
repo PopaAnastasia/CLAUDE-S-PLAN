@@ -114,18 +114,21 @@ export default function FitnessTracker({ onChangeTheme, onProfile, profile }: Pr
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-800">
-      <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col overflow-hidden bg-white shadow-xl">
-        <header className="z-10 flex items-center justify-between bg-indigo-600 px-4 py-3 text-white shadow-md">
+    <div className="min-h-screen bg-[#f5f3ff] text-slate-900">
+      <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col overflow-hidden bg-[#fbfaff] shadow-xl">
+        <header className="z-10 flex items-center justify-between bg-[#6d28d9] px-5 py-4 text-white shadow-md">
           <div className="flex items-center gap-3">
             <button
               aria-label="Open menu"
-              className="text-xl transition hover:text-indigo-200"
+              className="text-xl transition hover:text-violet-200"
               onClick={() => setMenuOpen(true)}
             >
               ☰
             </button>
-            <h1 className="text-lg font-bold tracking-wide">{viewTitles[view]}</h1>
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-violet-200">Daily</p>
+              <h1 className="text-lg font-bold tracking-wide">{viewTitles[view]}</h1>
+            </div>
           </div>
           <button aria-label="Open profile" className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold" style={{ backgroundColor: profile.color }} onClick={onProfile}>
             {(profile.firstName[0] || 'U').toUpperCase()}
@@ -191,45 +194,63 @@ export default function FitnessTracker({ onChangeTheme, onProfile, profile }: Pr
 
         <main className="flex-1 overflow-y-auto p-4">
           {view === 'dashboard' && (
-            <div className="space-y-4">
-              <section className="rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 p-5 text-white shadow-md">
-                <h2 className="text-sm uppercase tracking-wider opacity-80">Today's Progress</h2>
+            <div className="space-y-5">
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-sm font-medium text-violet-600">Good morning{profile.firstName ? `, ${profile.firstName}` : ''}</p>
+                  <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Keep moving today</h2>
+                </div>
+                <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700">Today</span>
+              </div>
+              <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#7c3aed] via-[#6d28d9] to-[#4c1d95] p-5 text-white shadow-lg shadow-violet-200">
+                <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10" />
+                <div className="absolute -bottom-14 right-12 h-32 w-32 rounded-full bg-fuchsia-300/10" />
+                <div className="relative">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-medium uppercase tracking-wider text-violet-100">Today's progress</h2>
+                  <span className="rounded-full bg-white/15 px-2.5 py-1 text-xs">🏆 {Math.round(progress)}%</span>
+                </div>
                 <div className="mt-2 flex items-end justify-between">
                   <div>
-                    <span className="text-4xl font-extrabold">{steps.toLocaleString()}</span>
-                    <span className="text-sm opacity-90"> / {stepGoal.toLocaleString()} steps</span>
+                    <span className="text-5xl font-extrabold tracking-tight">{steps.toLocaleString()}</span>
+                    <span className="text-sm text-violet-100"> / {stepGoal.toLocaleString()} steps</span>
                   </div>
                   <div className="text-right">
                     <span className="text-xl font-bold">{burnedCalories.toLocaleString()}</span>
-                    <span className="block text-xs opacity-90">Kcal Burned</span>
+                    <span className="block text-xs text-violet-100">Kcal burned</span>
                   </div>
                 </div>
-                <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-white/30">
+                <div className="mt-5 h-2.5 w-full overflow-hidden rounded-full bg-white/20">
                   <div className="h-full rounded-full bg-white transition-all" style={{ width: `${progress}%` }} />
+                </div>
+                <p className="mt-3 text-xs text-violet-100">{Math.max(stepGoal - steps, 0).toLocaleString()} steps left to reach your goal</p>
                 </div>
               </section>
 
               <div className="grid grid-cols-2 gap-3">
                 <button
-                  className="rounded-xl border border-slate-100 bg-white p-4 text-left shadow-sm transition hover:shadow"
+                  className="rounded-2xl border border-violet-100 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                   onClick={() => navigate('workouts')}
                 >
-                  <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-xl text-indigo-600">🏋</span>
+                  <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-100 text-xl text-violet-700">🏋</span>
                   <h3 className="font-bold text-slate-700">Workouts</h3>
                   <p className="mt-1 text-xs text-slate-400">{workouts.length} sessions logged</p>
                 </button>
                 <button
-                  className="rounded-xl border border-slate-100 bg-white p-4 text-left shadow-sm transition hover:shadow"
+                  className="rounded-2xl border border-orange-100 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                   onClick={() => navigate('calories')}
                 >
-                  <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50 text-xl text-orange-600">🔥</span>
+                  <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-100 text-xl text-orange-600">🔥</span>
                   <h3 className="font-bold text-slate-700">Calories</h3>
                   <p className="mt-1 text-xs text-slate-400">Breakfast &amp; lunch</p>
                 </button>
               </div>
 
-              <section className="rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
-                <h3 className="mb-2 font-bold text-slate-700">Recent Activity</h3>
+              <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="font-bold text-slate-700">Recent activity</h3>
+                  <button className="text-xs font-semibold text-violet-600" onClick={() => navigate('workouts')}>See all</button>
+                </div>
                 <div className="space-y-1">
                   {workouts.slice(0, 4).map((workout) => (
                     <div key={workout.id} className="flex items-center justify-between border-b border-slate-50 py-2 text-sm last:border-0">
@@ -457,14 +478,14 @@ export default function FitnessTracker({ onChangeTheme, onProfile, profile }: Pr
           )}
         </main>
 
-        <footer className="flex items-center justify-around border-t border-slate-100 bg-white px-4 py-2 text-xs text-slate-400">
+        <footer className="flex items-center justify-around border-t border-slate-100 bg-white px-4 py-3 text-xs text-slate-400">
           {([
             ['dashboard', '⌂', 'Home'],
             ['workouts', '🏋', 'Workouts'],
             ['calories', '🔥', 'Calories'],
             ['steps', '👟', 'Steps'],
           ] as [View, string, string][]).map(([key, icon, label]) => (
-            <button key={key} className={`flex flex-col items-center transition hover:text-indigo-600 ${view === key ? 'text-indigo-600' : ''}`} onClick={() => navigate(key)}>
+            <button key={key} className={`flex flex-col items-center gap-0.5 transition hover:text-violet-600 ${view === key ? 'font-semibold text-violet-600' : ''}`} onClick={() => navigate(key)}>
               <span className="mb-0.5 text-base">{icon}</span>
               {label}
             </button>
