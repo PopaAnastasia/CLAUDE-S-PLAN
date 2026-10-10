@@ -1,7 +1,8 @@
 import { argon2id } from 'hash-wasm'
 
 export type VaultMode = 'real' | 'decoy'
-type Opened = { mode: VaultMode; key: CryptoKey } | null
+type Session = { mode: VaultMode; key: CryptoKey; raw: Uint8Array }
+type Opened = Session | null
 
 // Every header is exactly the same size, so real, decoy and filler
 // look identical on disk:
@@ -14,7 +15,7 @@ const SLOT_KEYS = ['daily.cfg.0', 'daily.cfg.1'] // neutral names
 
 export const MIN_SECRET_LEN = 8
 
-let session: { mode: VaultMode; key: CryptoKey } | null = null
+let session: Session | null = null
 
 const rand = (n: number) => crypto.getRandomValues(new Uint8Array(n))
 const toB64 = (u: Uint8Array) => btoa(String.fromCharCode(...u))
@@ -42,12 +43,16 @@ async function deriveKek(secret: string, salt: Uint8Array): Promise<CryptoKey> {
   ])
 }
 
-async function makeHeader(secret: string, mode: VaultMode): Promise<Uint8Array> {
+async function makeHeader(
+  secret: string,
+  mode: VaultMode,
+  masterKey?: Uint8Array,
+): Promise<Uint8Array> {
   const salt = rand(SALT_LEN)
   const iv = rand(IV_LEN)
   const plain = new Uint8Array(1 + KEY_LEN)
   plain[0] = mode === 'real' ? 1 : 2
-  plain.set(rand(KEY_LEN), 1) // this vault's random master key
+  plain.set(masterKey ?? rand(KEY_LEN), 1) // this vault's master key
   const kek = await deriveKek(secret, salt)
   const ct = new Uint8Array(
     await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, kek, plain),
@@ -72,15 +77,16 @@ async function tryOpen(header: Uint8Array, secret: string): Promise<Opened> {
     const mode: VaultMode | null =
       plain[0] === 1 ? 'real' : plain[0] === 2 ? 'decoy' : null
     if (!mode) return null
+    const raw = plain.slice(1)
     const key = await crypto.subtle.importKey(
       'raw',
-      plain.slice(1),
+      raw,
       'AES-GCM',
       false, // not extractable
       ['encrypt', 'decrypt'],
     )
     plain.fill(0)
-    return { mode, key }
+    return { mode, key, raw }
   } catch {
     return null // wrong secret, or this slot is just random filler
   }
@@ -88,6 +94,13 @@ async function tryOpen(header: Uint8Array, secret: string): Promise<Opened> {
 
 export const isVaultConfigured = () =>
   SLOT_KEYS.every((k) => localStorage.getItem(k) !== null)
+
+export const lockVault = () => {
+  session?.raw.fill(0)
+  session = null
+}
+export const getVaultKey = () => session?.key ?? null
+export const getVaultMode = () => session?.mode ?? null
 
 export async function setupVault(
   realSecret: string,
@@ -121,12 +134,44 @@ export async function unlockVault(secret: string): Promise<VaultMode | null> {
 
   const hit = results.find((r) => r !== null) ?? null
   if (!hit) return null
+  session?.raw.fill(0)
   session = hit
   return hit.mode
 }
 
-export const lockVault = () => {
-  session = null
+// Sets or changes both phrases. Nothing set yet: sets them up.
+// Already set: needs the CURRENT private phrase, and keeps all saved entries.
+export async function savePhrases(
+  current: string,
+  newReal: string,
+  newDecoy: string,
+): Promise<boolean> {
+  const r = normalizeSecret(newReal)
+  const d = normalizeSecret(newDecoy)
+  if (r.length < MIN_SECRET_LEN || d.length < MIN_SECRET_LEN || r === d) return false
+
+  if (!isVaultConfigured()) {
+    await setupVault(r, d)
+    return true
+  }
+
+  const mode = await unlockVault(current)
+  if (mode !== 'real' || !session) {
+    lockVault()
+    return false
+  }
+  const master = session.raw
+  const real = await makeHeader(r, 'real', master) // same master key, new phrase
+  const decoy = await makeHeader(d, 'decoy')
+  const slots = (rand(1)[0] & 1) === 0 ? [real, decoy] : [decoy, real]
+  SLOT_KEYS.forEach((k, i) => localStorage.setItem(k, toB64(slots[i])))
+  lockVault()
+  return true
 }
-export const getVaultKey = () => session?.key ?? null
-export const getVaultMode = () => session?.mode ?? null
+
+// Removes the vault keys, so the saved entries can never be read again.
+// Phrases can then be set up fresh from the Profile page.
+export const wipeVaultKeys = () => {
+  lockVault()
+  SLOT_KEYS.forEach((k) => localStorage.removeItem(k))
+}
