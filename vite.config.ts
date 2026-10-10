@@ -10,8 +10,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Daily',
-        short_name: 'Daily',
+        name: 'Daily Fit',
+        short_name: 'Daily Fit',
         display: 'standalone',
         background_color: '#ffffff',
         theme_color: '#ffffff',
