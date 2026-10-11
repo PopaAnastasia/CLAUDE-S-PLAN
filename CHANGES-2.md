@@ -66,7 +66,14 @@ This covers only what changed after the previous [CHANGES.md](CHANGES.md) was sh
 - To make it less likely, the Help search box, the journal's note fields and the Change phrases fields are replaced with fresh ones after each use, so there's usually no recent typing to undo.
 - A native wrapper (see the README roadmap) would remove the popup completely.
 
-## 5. Documentation
+## 5. Backup shows the code before the file (iPhone fix)
+
+- On an installed iPhone app, tapping **Create backup** used to download the file and show the five-word code at the same moment. Saving the file backgrounds the app, which iOS then reloads, wiping the one-time code before it could be read — so the backup became unopenable.
+- Now **Create backup** is two steps: **Step 1** shows the code to write down (the journal won't auto-lock while it's on screen), and **Step 2** is a separate **Download backup file** button. The code is read before the download is triggered, so it survives. A "I've saved the code and the file" link clears it.
+- Also fixes the meal fields offering the keyboard's name/contact autofill (`autocomplete="off"` on the food, calories, protein and fiber inputs).
+- Verified end to end: code shown first, file downloaded on the second tap, and the receiver opens that file with that code.
+
+## 6. Documentation
 
 - **README.md** updated for all of the above: branding and intro, installing on iPhone and Android, per-day fitness data, shake and motion permission, a new "iPhone Shake to Undo" limitation, an updated flowchart (shake also leaves setup), testing and judge steps, project structure (`Splash.tsx`, logo, intro videos), and the roadmap (a native wrapper also removes the Undo popup).
 - **CHANGES.md** updated with the same changes.
@@ -91,5 +98,5 @@ This covers only what changed after the previous [CHANGES.md](CHANGES.md) was sh
 |---|---|
 | Added | `src/components/Splash.tsx`, `src/assets/logo.png`, `public/intro.webm`, `public/intro.mp4`, `public/favicon.png`, `CHANGES-2.md` |
 | Removed | `public/favicon.svg` (Vite's default logo) |
-| Changed | `src/App.tsx`, `src/components/FitnessApp.tsx`, `Trackers.tsx`, `Phrases.tsx`, `VaultHome.tsx`, `WelcomeTour.tsx`, `ProfilePage.tsx`, `Backup.tsx`, `Bar.tsx`, `data.ts`, `src/lib/useShake.ts`, `public/icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, `index.html`, `vite.config.ts`, `README.md`, `CHANGES.md` |
+| Changed | `src/App.tsx`, `src/components/FitnessApp.tsx`, `Trackers.tsx`, `Phrases.tsx`, `VaultHome.tsx`, `WelcomeTour.tsx`, `ProfilePage.tsx`, `Backup.tsx` (two-step backup), `Bar.tsx`, `data.ts`, `src/lib/useShake.ts`, `public/icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, `index.html`, `vite.config.ts`, `README.md`, `CHANGES.md` |
 | Unchanged | Encryption, storage, hash chain, backup format, PDF export, walk mode's step counting. Existing journals and backups still work. |
