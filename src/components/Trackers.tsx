@@ -119,18 +119,21 @@ export function Calories({
         <input
           className={field}
           placeholder="Food or meal (e.g. Oatmeal)"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="sentences"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
         <div className="grid grid-cols-2 gap-2">
-          <input className={field} placeholder="Calories" inputMode="numeric" value={kcalText} onChange={(e) => setKcalText(e.target.value.replace(/\D/g, ''))} />
+          <input className={field} placeholder="Calories" inputMode="numeric" autoComplete="off" value={kcalText} onChange={(e) => setKcalText(e.target.value.replace(/\D/g, ''))} />
           <select className={field} value={meal} onChange={(e) => setMeal(e.target.value as Food['meal'])}>
             <option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snack</option>
           </select>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <input className={field} placeholder="Protein (g)" inputMode="numeric" value={proteinText} onChange={(e) => setProteinText(e.target.value.replace(/\D/g, ''))} />
-          <input className={field} placeholder="Fiber (g)" inputMode="numeric" value={fiberText} onChange={(e) => setFiberText(e.target.value.replace(/\D/g, ''))} />
+          <input className={field} placeholder="Protein (g)" inputMode="numeric" autoComplete="off" value={proteinText} onChange={(e) => setProteinText(e.target.value.replace(/\D/g, ''))} />
+          <input className={field} placeholder="Fiber (g)" inputMode="numeric" autoComplete="off" value={fiberText} onChange={(e) => setFiberText(e.target.value.replace(/\D/g, ''))} />
         </div>
         <button
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--fit-accent)] py-2.5 font-semibold text-white hover:opacity-90"

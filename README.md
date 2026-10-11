@@ -9,7 +9,7 @@ Hacklanta 2026 · Track: **Cox Sponsored: Social Good** · Side challenge: **Sho
 | **Live app** | *(add the live link at submission)* |
 | **Demo video** | *(add the public video link)* |
 | **Devpost** | *(add the Devpost link)* |
-   | **Team** | [@raidathingz](https://github.com/raidathingz) · [@PopaAnastasia](https://github.com/PopaAnastasia) · [@RainaNicole06](https://github.com/RainaNicole06) · [@Zainab-Isa](https://github.com/Zainab-Isa) |
+| **Team** | [@raidathingz](https://github.com/raidathingz) · [@PopaAnastasia](https://github.com/PopaAnastasia) · [@RainaNicole06](https://github.com/RainaNicole06) · [@Zainab-Isa](https://github.com/Zainab-Isa) |
 
 > **Prototype notice.** Shake has not been reviewed by domestic-violence advocates or lawyers, and it is not a substitute for professional help or emergency services. Please use **fake data only** when trying it. If you are in immediate danger, call 911.
 
@@ -255,11 +255,12 @@ The first entry links to a fixed starting value. A file's own SHA-256 is part of
 
 A phone can be lost, broken or wiped, and everything here lives only on the phone. So the app prompts for a backup after every save.
 
-**Create a backup** (Journal → Backup):
+**Create a backup** (Journal → Backup → Create backup):
 1. The app collects every entry and file and encrypts them into one file named `shake-backup-<date>.dfb`.
 2. A random **five-word code** (for example `slight-excite-figure-wet-inch`, 55 bits drawn from the 2,048-word BIP-39 list) is generated and shown **once**. It is never stored.
-3. The key is derived from the code with **Argon2id** (64 MiB, 3 iterations); the file is sealed with **AES-GCM**, and its header is authenticated.
-4. The person gives the file to someone they trust and tells them the code by a **different route** (in person or by phone).
+3. The screen shows the code **first** (step 1 — write it down), then a separate **Download backup file** button (step 2). This order matters on iPhone: saving the file sends the installed app to the background and reloads it, which would wipe the one-time code, so the code must be read before the file is downloaded. The journal does not auto-lock while the code is on screen.
+4. The key is derived from the code with **Argon2id** (64 MiB, 3 iterations); the file is sealed with **AES-GCM**, and its header is authenticated.
+5. The person gives the file to someone they trust and tells them the code by a **different route** (in person or by phone).
 
 **Open a shared copy** (no account, no install, nothing uploaded): the recipient opens the app link followed by `/#/receive`, chooses the file, and types the code. The page decrypts it in the browser, **re-verifies the whole chain**, shows each entry with its times and files, and can export a PDF.
 
