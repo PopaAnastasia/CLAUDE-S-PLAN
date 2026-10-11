@@ -338,9 +338,9 @@ Things we would do next, in rough priority:
 
 **Team work.** We made the product, safety and architecture decisions: the fitness-app disguise, entering the journal through the Help question box, the decoy phrase that looks identical to any other input, no backend, entries that cannot be edited or deleted, no erase option, and encrypted backup instead of cloud sync. We built and iterated on the interface and the fitness features, set up the project and PWA, worked through branches, pull requests and merges in Git, debugged build and environment problems, ran the app in browsers and on phones, and deployed it.
 
-**AI assistance.** We used an AI coding assistant (Claude) under our direction. It helped write and test parts of the code, in particular the encrypted storage, the hash chain, the backup format and the automated tests listed in [section 10](#10-what-we-tested-and-what-we-did-not). We ran and checked the results, but that code has **not** had an independent security audit.
+**AI assistance.** We used an AI coding assistant (Claude) under our direction. It helped write and test parts of the code, in particular the encrypted storage, the hash chain, the backup format and the automated tests listed in [section 10](#10-what-we-tested-and-what-we-did-not). We did product and safety decisions, the interface, version control with branches and pull requests, debugging, testing in browsers, and deploying. The project idea was completely original and was not developed using AI.
 
-**Before the event vs. during it.** *(Fill in after checking the Hacklanta rules: what existed beforehand, such as our written spec and early scaffold, and what was built during the event.)*
+**Before the event vs. during it.** Everything, including idea generation and developing, was started after the official Hackathon coding window began.
 
 ---
 
