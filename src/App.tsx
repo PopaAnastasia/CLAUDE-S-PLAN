@@ -1,38 +1,67 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import FitnessApp from './components/FitnessApp'
 import FaqPage from './components/FaqPage'
 import VaultHome from './components/VaultHome'
+import ReceivePage from './components/ReceivePage'
 import { lockVault } from './crypto/vault'
-import { inGrace } from './lib/lockGrace'
+import { inGrace, isHeld } from './lib/lockGrace'
 
 type Screen = 'app' | 'real' | 'faq'
+const IDLE_MS = 2 * 60 * 1000
+const isReceive = () => window.location.hash.startsWith('#/receive')
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('app')
+  const [receive, setReceive] = useState(isReceive())
+  const screenRef = useRef(screen)
+  screenRef.current = screen
 
   const lock = () => {
     lockVault()
     setScreen('app')
   }
 
+  useEffect(() => {
+    const h = () => setReceive(isReceive())
+    window.addEventListener('hashchange', h)
+    return () => window.removeEventListener('hashchange', h)
+  }, [])
+
   // Auto-lock whenever the page is hidden (tab switch, app switch),
   // except briefly while the camera or file picker is open.
   useEffect(() => {
     const onHide = () => {
-      if (document.hidden && !inGrace()) {
-        lockVault()
-        setScreen('app')
-      }
+      if (document.hidden && !inGrace() && !isHeld()) lock()
     }
     document.addEventListener('visibilitychange', onHide)
     return () => document.removeEventListener('visibilitychange', onHide)
   }, [])
 
+  // Auto-lock after 2 minutes without touching the screen.
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>
+    const arm = () => {
+      clearTimeout(timer)
+      timer = setTimeout(function fire() {
+        if (screenRef.current !== 'real') return
+        if (isHeld() || inGrace()) {
+          timer = setTimeout(fire, 15_000)
+          return
+        }
+        lock()
+      }, IDLE_MS)
+    }
+    const evs = ['pointerdown', 'keydown', 'touchstart', 'scroll', 'input'] as const
+    evs.forEach((e) => window.addEventListener(e, arm, { passive: true, capture: true }))
+    arm()
+    return () => {
+      clearTimeout(timer)
+      evs.forEach((e) => window.removeEventListener(e, arm, { capture: true }))
+    }
+  }, [])
+
+  if (receive) return <ReceivePage />
   if (screen === 'real') return <VaultHome onClose={lock} />
   if (screen === 'faq') return <FaqPage onBack={() => setScreen('app')} />
-  return (
-    <FitnessApp
-      onResult={(mode) => setScreen(mode === 'real' ? 'real' : 'faq')}
-    />
-  )
+  return <FitnessApp onResult={(mode) => setScreen(mode === 'real' ? 'real' : 'faq')} />
 }

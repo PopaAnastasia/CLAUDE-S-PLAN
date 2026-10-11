@@ -2,7 +2,6 @@ import { argon2id } from 'hash-wasm'
 
 export type VaultMode = 'real' | 'decoy'
 type Session = { mode: VaultMode; key: CryptoKey; raw: Uint8Array }
-type Opened = Session | null
 
 // Every header is exactly the same size, so real, decoy and filler
 // look identical on disk:
@@ -65,7 +64,8 @@ async function makeHeader(
   return out
 }
 
-async function tryOpen(header: Uint8Array, secret: string): Promise<Opened> {
+async function tryOpen(header: Uint8Array, secret: string): Promise<Session | null> {
+  if (header.length !== HEADER_LEN) return null
   const salt = header.slice(0, SALT_LEN)
   const iv = header.slice(SALT_LEN, SALT_LEN + IV_LEN)
   const ct = header.slice(SALT_LEN + IV_LEN)
@@ -78,13 +78,10 @@ async function tryOpen(header: Uint8Array, secret: string): Promise<Opened> {
       plain[0] === 1 ? 'real' : plain[0] === 2 ? 'decoy' : null
     if (!mode) return null
     const raw = plain.slice(1)
-    const key = await crypto.subtle.importKey(
-      'raw',
-      raw,
-      'AES-GCM',
-      false, // not extractable
-      ['encrypt', 'decrypt'],
-    )
+    const key = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, [
+      'encrypt',
+      'decrypt',
+    ])
     plain.fill(0)
     return { mode, key, raw }
   } catch {
@@ -95,17 +92,13 @@ async function tryOpen(header: Uint8Array, secret: string): Promise<Opened> {
 export const isVaultConfigured = () =>
   SLOT_KEYS.every((k) => localStorage.getItem(k) !== null)
 
-export const lockVault = () => {
-  session?.raw.fill(0)
-  session = null
+function writeSlots(a: Uint8Array, b: Uint8Array) {
+  // Random slot order, so position never reveals which one is real.
+  const slots = (rand(1)[0] & 1) === 0 ? [a, b] : [b, a]
+  SLOT_KEYS.forEach((k, i) => localStorage.setItem(k, toB64(slots[i])))
 }
-export const getVaultKey = () => session?.key ?? null
-export const getVaultMode = () => session?.mode ?? null
 
-export async function setupVault(
-  realSecret: string,
-  decoySecret: string | null,
-) {
+export async function setupVault(realSecret: string, decoySecret: string | null) {
   const realText = normalizeSecret(realSecret)
   const decoyText = decoySecret === null ? null : normalizeSecret(decoySecret)
   if (realText.length < MIN_SECRET_LEN) throw new Error('too short')
@@ -118,9 +111,7 @@ export async function setupVault(
   const real = await makeHeader(realText, 'real')
   // No decoy chosen? Fill the slot with random bytes of the same size.
   const decoy = decoyText ? await makeHeader(decoyText, 'decoy') : rand(HEADER_LEN)
-  // Random slot order, so position never reveals which one is real.
-  const slots = (rand(1)[0] & 1) === 0 ? [real, decoy] : [decoy, real]
-  SLOT_KEYS.forEach((k, i) => localStorage.setItem(k, toB64(slots[i])))
+  writeSlots(real, decoy)
 }
 
 export async function unlockVault(secret: string): Promise<VaultMode | null> {
@@ -129,18 +120,17 @@ export async function unlockVault(secret: string): Promise<VaultMode | null> {
   if (text === '' || headers.some((h) => h === null)) return null
 
   // Always try BOTH slots so timing doesn't reveal which one matched.
-  const results: Opened[] = []
+  const results: (Session | null)[] = []
   for (const h of headers) results.push(await tryOpen(fromB64(h ?? ''), text))
 
   const hit = results.find((r) => r !== null) ?? null
   if (!hit) return null
-  session?.raw.fill(0)
   session = hit
   return hit.mode
 }
 
-// Sets or changes both phrases. Nothing set yet: sets them up.
-// Already set: needs the CURRENT private phrase, and keeps all saved entries.
+// Sets (or changes) both phrases. Changing keeps the same master key,
+// so entries already saved stay readable.
 export async function savePhrases(
   current: string,
   newReal: string,
@@ -163,15 +153,13 @@ export async function savePhrases(
   const master = session.raw
   const real = await makeHeader(r, 'real', master) // same master key, new phrase
   const decoy = await makeHeader(d, 'decoy')
-  const slots = (rand(1)[0] & 1) === 0 ? [real, decoy] : [decoy, real]
-  SLOT_KEYS.forEach((k, i) => localStorage.setItem(k, toB64(slots[i])))
+  writeSlots(real, decoy)
   lockVault()
   return true
 }
 
-// Removes the vault keys, so the saved entries can never be read again.
-// Phrases can then be set up fresh from the Profile page.
-export const wipeVaultKeys = () => {
-  lockVault()
-  SLOT_KEYS.forEach((k) => localStorage.removeItem(k))
+export const lockVault = () => {
+  session = null
 }
+export const getVaultKey = () => session?.key ?? null
+export const getVaultMode = () => session?.mode ?? null

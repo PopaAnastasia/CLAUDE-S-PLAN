@@ -1,19 +1,19 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont } from 'pdf-lib'
 import { listForExport, verifyChain } from '../storage/evidence'
+import type { ExportRow, Verify } from './chain'
+import { fmtSize, fmtTime } from './format'
 
-export const fmtSize = (n: number) =>
-  n < 1024
-    ? `${n} B`
-    : n < 1024 * 1024
-      ? `${(n / 1024).toFixed(1)} KB`
-      : `${(n / 1024 / 1024).toFixed(1)} MB`
-
-// pdf-lib's built-in fonts only support Latin-1, so replace anything else.
+// pdf-lib's built-in fonts only support Latin-1. Turn odd spaces into plain
+// spaces first (toLocaleString uses U+202F), then replace anything else.
 const clean = (s: string) =>
   s
     .replace(/\r/g, '')
     .replace(/\t/g, ' ')
-    .replace(/[^\n\x20-\x7E\u00A0-\u00FF]/g, '?')
+    .replace(/[  -   　]/g, ' ')
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[–—]/g, '-')
+    .replace(/[^\n\x20-\x7E¡-ÿ]/g, '?')
 
 function wrap(text: string, font: PDFFont, size: number, maxW: number): string[] {
   const lines: string[] = []
@@ -40,8 +40,11 @@ function wrap(text: string, font: PDFFont, size: number, maxW: number): string[]
   return lines
 }
 
-async function buildPdf(): Promise<Uint8Array> {
-  const [items, check] = await Promise.all([listForExport(), verifyChain()])
+export async function buildPdf(
+  items: ExportRow[],
+  check: Verify,
+  heading = 'Incident record export',
+): Promise<Uint8Array> {
   const pdf = await PDFDocument.create()
   const font = await pdf.embedFont(StandardFonts.Helvetica)
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold)
@@ -64,13 +67,7 @@ async function buildPdf(): Promise<Uint8Array> {
     for (const ln of wrap(text, f, size, W - indent)) {
       need(size + 4)
       if (ln !== '') {
-        page.drawText(ln, {
-          x: M + indent,
-          y: y - size,
-          size,
-          font: f,
-          color: rgb(gray, gray, gray),
-        })
+        page.drawText(ln, { x: M + indent, y: y - size, size, font: f, color: rgb(gray, gray, gray) })
       }
       y -= size + 4
     }
@@ -79,9 +76,9 @@ async function buildPdf(): Promise<Uint8Array> {
     y -= h
   }
 
-  write('Incident record export', bold, 18)
+  write(heading, bold, 18)
   gap(4)
-  write(`Created: ${new Date().toLocaleString()}`, font, 10, 0, 0.35)
+  write(`Created: ${fmtTime(new Date().toISOString())}`, font, 10, 0, 0.35)
   write(`Entries: ${items.length}`, font, 10, 0, 0.35)
   gap(6)
   write(
@@ -91,14 +88,15 @@ async function buildPdf(): Promise<Uint8Array> {
     bold,
     10,
   )
+  for (const n of check.notices) write(`Notice: ${n}`, font, 9, 0, 0.35)
   const last = items[items.length - 1]
   if (last) write(`Final chain hash: ${last.entryHash}`, mono, 7.5, 0, 0.35)
   gap(6)
   write(
-    'Notes: Dates come from the device clock and were not independently verified. ' +
+    'Notes: Times come from the phone clock and were not independently verified. ' +
       'Hashes show whether entries changed after they were saved; they do not prove ' +
-      'that an event happened. Admissibility depends on local law. Ask a lawyer or ' +
-      'advocate how to use this record.',
+      'that an event happened or who made the entry. Admissibility depends on local law. ' +
+      'Ask a lawyer or advocate how to use this record.',
     font,
     9,
     0,
@@ -107,31 +105,41 @@ async function buildPdf(): Promise<Uint8Array> {
   gap(10)
 
   for (const it of items) {
-    need(40)
-    write(`#${it.seq}  ${it.kind.toUpperCase()}  ${new Date(it.createdAt).toLocaleString()}`, bold, 10)
+    need(60)
+    write(`#${it.seq}  ${it.kind.toUpperCase()}`, bold, 10)
+    write(`Saved: ${fmtTime(it.createdAt, it.tz)}`, font, 9, 0, 0.3)
+    if (it.happenedAt) write(`Happened (as entered): ${fmtTime(it.happenedAt, it.tz)}`, font, 9, 0, 0.3)
+    if (it.capturedAt)
+      write(
+        `${it.capturedFrom === 'recording' ? 'Recorded' : 'File dated'}: ${fmtTime(it.capturedAt, it.tz)}`,
+        font,
+        9,
+        0,
+        0.3,
+      )
     write(it.title, font, 11)
-    if (it.text) write(it.text, font, 10, 8, 0.2)
+    if (it.text) write(it.text, font, 10, 12)
     if (it.fileName) {
-      const size = it.size ? ` (${fmtSize(it.size)})` : ''
-      const mime = it.mime ? `, ${it.mime}` : ''
-      write(`File: ${it.fileName}${size}${mime}`, font, 9, 0, 0.35)
+      write(`File: ${it.fileName}${it.size ? ` (${fmtSize(it.size)})` : ''}`, font, 9, 12, 0.3)
+      if (it.fileHash) write(`File SHA-256: ${it.fileHash}`, mono, 7.5, 12, 0.35)
     }
-    if (it.fileHash) write(`File SHA-256: ${it.fileHash}`, mono, 7, 0, 0.35)
-    write(`Entry hash: ${it.entryHash}`, mono, 7, 0, 0.35)
-    gap(10)
+    write(`Entry hash: ${it.entryHash}`, mono, 7.5, 12, 0.35)
+    gap(8)
   }
   return pdf.save()
 }
 
-export async function downloadPdf() {
-  const bytes = await buildPdf()
-  const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' })
+export function downloadPdf(bytes: Uint8Array, name: string) {
+  const blob = new Blob([bytes as Uint8Array<ArrayBuffer>], { type: 'application/pdf' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `journal-${new Date().toISOString().slice(0, 10)}.pdf`
-  document.body.appendChild(a)
+  a.download = name
   a.click()
-  a.remove()
   setTimeout(() => URL.revokeObjectURL(url), 10_000)
+}
+
+export async function exportPdf() {
+  const [items, check] = await Promise.all([listForExport(), verifyChain()])
+  downloadPdf(await buildPdf(items, check), 'incident-record.pdf')
 }

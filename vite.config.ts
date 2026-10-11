@@ -9,14 +9,21 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      includeAssets: ['apple-touch-icon.png'],
       manifest: {
         name: 'Daily Fit',
         short_name: 'Daily Fit',
+        description: 'Simple daily fitness tracker',
         display: 'standalone',
+        start_url: '/',
         background_color: '#ffffff',
-        theme_color: '#ffffff',
-        icons: []
-      }
-    })
-  ]
+        theme_color: '#4f46e5',
+        icons: [
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+    }),
+  ],
 })
