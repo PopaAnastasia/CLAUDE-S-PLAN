@@ -36,29 +36,31 @@ export default function EntryCard({
   }
 
   return (
-    <li className="rounded-xl border border-slate-200 bg-white p-3 text-sm">
-      <div className="flex items-center gap-2 font-semibold">
-        <Icon size={16} className="text-indigo-600" />
-        {seq ? <span className="text-slate-400">#{seq}</span> : null}
-        <span className="truncate">{item.title}</span>
+    <li className="rounded-2xl border border-[#e5e6df] bg-white p-4 text-sm shadow-sm">
+      <div className="flex items-center gap-3 font-semibold text-[#193c36]">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#d8e8db]">
+          <Icon size={17} className="text-[#287354]" />
+        </span>
+        <span className="min-w-0 flex-1 truncate">{item.title}</span>
+        {seq ? <span className="rounded-full bg-[#f5f3ed] px-2 py-0.5 text-[11px] text-[#89928f]">#{seq}</span> : null}
       </div>
-      <dl className="mt-1 space-y-0.5 text-xs text-slate-500">
+      <dl className="mt-3 space-y-0.5 border-l-2 border-[#e5e6df] pl-3 text-xs text-[#687773]">
         <div><dt className="inline font-medium">Saved: </dt><dd className="inline">{fmtTime(item.createdAt, item.tz)}</dd></div>
         {item.happenedAt && <div><dt className="inline font-medium">Happened (as entered): </dt><dd className="inline">{fmtTime(item.happenedAt, item.tz)}</dd></div>}
         {item.capturedAt && <div><dt className="inline font-medium">{item.capturedFrom === 'recording' ? 'Recorded: ' : 'File dated: '}</dt><dd className="inline">{fmtTime(item.capturedAt, item.tz)}</dd></div>}
       </dl>
-      {item.text && <p className="mt-2 whitespace-pre-wrap break-words text-slate-700">{item.text}</p>}
+      {item.text && <p className="mt-3 whitespace-pre-wrap break-words leading-relaxed text-[#193c36]">{item.text}</p>}
       {item.fileName && (
         <div className="mt-2">
-          <p className="text-xs text-slate-500">{item.fileName}{item.size ? ` · ${fmtSize(item.size)}` : ''}</p>
+          <p className="text-xs text-[#89928f]">{item.fileName}{item.size ? ` · ${fmtSize(item.size)}` : ''}</p>
           {url ? (
-            item.kind === 'photo' ? <img src={url} alt={item.title} className="mt-1 max-h-64 rounded-lg" />
-            : item.kind === 'video' ? <video src={url} controls className="mt-1 max-h-64 w-full rounded-lg" />
-            : <audio src={url} controls className="mt-1 w-full" />
+            item.kind === 'photo' ? <img src={url} alt={item.title} className="mt-2 max-h-64 rounded-xl" />
+            : item.kind === 'video' ? <video src={url} controls className="mt-2 max-h-64 w-full rounded-xl" />
+            : <audio src={url} controls className="mt-2 w-full" />
           ) : (
-            <button onClick={load} className="mt-1 text-xs font-medium text-indigo-700 underline">Show / play</button>
+            <button onClick={load} className="mt-2 rounded-lg bg-[#d8e8db] px-3 py-1.5 text-xs font-semibold text-[#287354]">Show / play</button>
           )}
-          <button onClick={save} className="ml-3 text-xs font-medium text-indigo-700 underline">Download copy</button>
+          <button onClick={save} className="ml-2 mt-2 rounded-lg bg-[#f5f3ed] px-3 py-1.5 text-xs font-semibold text-[#193c36]">Download copy</button>
         </div>
       )}
     </li>

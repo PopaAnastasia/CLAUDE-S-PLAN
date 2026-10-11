@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import { Download, Upload } from 'lucide-react'
+import { Download, KeyRound, Upload } from 'lucide-react'
 import { countItems, readAllEntries, restoreEntries } from '../storage/evidence'
 import { decryptBundle, encryptBundle, isValidCode, makeCode, MAX_BUNDLE } from '../lib/bundle'
 import { verifyEntries } from '../lib/chain'
 import { graceLock, holdLock } from '../lib/lockGrace'
 
-const btn = 'rounded-lg px-4 py-2 text-sm font-medium'
-const primary = `${btn} bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50`
+import { fileInput, input, muted, panel, solid } from './ui'
 
 export default function Backup({ onChanged }: { onChanged: () => void }) {
   const [busy, setBusy] = useState(false)
@@ -31,7 +30,7 @@ export default function Backup({ onChanged }: { onChanged: () => void }) {
       const u = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = u
-      a.download = `daily-fit-backup-${new Date().toISOString().slice(0, 10)}.dfb`
+      a.download = `shake-backup-${new Date().toISOString().slice(0, 10)}.dfb`
       a.click()
       setTimeout(() => URL.revokeObjectURL(u), 10_000)
       setCode(c)
@@ -75,22 +74,27 @@ export default function Backup({ onChanged }: { onChanged: () => void }) {
   }
 
   return (
-    <div className="space-y-5">
-      <section className="space-y-2">
-        <h3 className="font-semibold">Create an encrypted backup</h3>
-        <p className="text-xs text-slate-500">
+    <div className="space-y-4">
+      <section className={`${panel} space-y-3`}>
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#d8e8db]"><Download size={20} className="text-[#287354]" /></span>
+          <h3 className="text-base font-bold">Create an encrypted backup</h3>
+        </div>
+        <p className={muted}>
           Saves one file with everything in your journal. It is locked with a one-time code of five
           words generated for this backup. Give the file to someone you trust, and tell them the
           code in a different way (in person or by phone), not in the same message.
         </p>
-        <button onClick={make} disabled={busy} className={primary}>
-          <Download size={14} className="mr-1 inline" /> {busy ? 'Working…' : 'Create backup'}
+        <button onClick={make} disabled={busy} className={`${solid} w-full`}>
+          <Download size={16} /> {busy ? 'Working…' : 'Create backup'}
         </button>
         {code && (
-          <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-3">
-            <p className="text-xs text-emerald-900">Your code. It is shown only now; it is not stored anywhere:</p>
-            <p className="mt-1 select-all break-words font-mono text-lg font-bold">{code}</p>
-            <p className="mt-1 text-xs text-emerald-900">
+          <div className="rounded-xl border border-[#9cc7ae] bg-[#eef6f0] p-4">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-[#1f5d44]">
+              <KeyRound size={14} /> Your code. It is shown only now and is not stored anywhere:
+            </p>
+            <p className="mt-2 select-all break-words rounded-lg bg-white p-3 text-center font-mono text-lg font-bold tracking-wide">{code}</p>
+            <p className="mt-2 text-xs leading-relaxed text-[#1f5d44]">
               The person opens the app link, then goes to <span className="font-mono">/#/receive</span>,
               chooses the file and types the code. If you lose the code, the file can&apos;t be opened.
             </p>
@@ -98,21 +102,24 @@ export default function Backup({ onChanged }: { onChanged: () => void }) {
         )}
       </section>
 
-      <section className="space-y-2 border-t border-slate-200 pt-4">
-        <h3 className="font-semibold">Restore on a new phone</h3>
-        <p className="text-xs text-slate-500">
-          Only works when this journal is empty. Set your phrases in Profile first, then restore.
+      <section className={`${panel} space-y-3`}>
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#ded9eb]"><Upload size={20} className="text-[#523acb]" /></span>
+          <h3 className="text-base font-bold">Restore on a new phone</h3>
+        </div>
+        <p className={muted}>
+          Only works when this journal is empty, so nothing already saved can be overwritten.
         </p>
         <input type="file" onClick={() => graceLock()} onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="block w-full text-sm" />
-        <input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="five-word code"
+          className={fileInput} />
+        <input value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="Five-word code"
           autoCapitalize="none" autoCorrect="off" spellCheck={false}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-        <button onClick={restore} disabled={busy || !file || !isValidCode(typed)} className={primary}>
-          <Upload size={14} className="mr-1 inline" /> Restore
+          className={input} />
+        <button onClick={restore} disabled={busy || !file || !isValidCode(typed)} className={`${solid} w-full`}>
+          <Upload size={16} /> Restore
         </button>
       </section>
-      {msg && <p role="status" className="rounded-lg bg-slate-100 p-3 text-sm">{msg}</p>}
+      {msg && <p role="status" className="rounded-xl bg-[#ecebe3] p-3 text-sm">{msg}</p>}
     </div>
   )
 }

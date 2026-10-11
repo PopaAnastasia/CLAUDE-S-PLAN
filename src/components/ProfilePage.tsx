@@ -1,20 +1,8 @@
-import { useState } from 'react'
-import { Check, ChevronDown, KeyRound, Palette, Ruler, UserRound } from 'lucide-react'
-import { MIN_SECRET_LEN, normalizeSecret, savePhrases } from '../crypto/vault'
-import { card, field, primary, useStored } from './data'
-
-// Hides typed characters without using a password field, which would make
-// the browser offer to "save password" and leave a visible trace.
-const mask = '[-webkit-text-security:disc]'
-const off = {
-  autoComplete: 'off',
-  autoCorrect: 'off',
-  autoCapitalize: 'off',
-  spellCheck: false,
-} as const
+import { Check, Palette, Ruler, UserRound } from 'lucide-react'
+import { card, field, useStored } from './data'
 
 const colorChoices = [
-  { name: 'Violet', value: '#5d43d6' },
+  { name: 'Violet', value: '#523acb' },
   { name: 'Coral', value: '#e66c52' },
   { name: 'Forest', value: '#287354' },
   { name: 'Navy', value: '#193c36' },
@@ -31,62 +19,11 @@ export default function ProfilePage({
   const [bio, setBio] = useStored<string>('fit.bio', '')
   const [focus, setFocus] = useStored<string>('fit.focus', 'Build consistency')
   const [units, setUnits] = useStored<string>('fit.units', 'Imperial')
-  const [pwOpen, setPwOpen] = useState(false)
-  const [current, setCurrent] = useState('')
-  const [phrase, setPhrase] = useState('')
-  const [phrase2, setPhrase2] = useState('')
-  const [recovery, setRecovery] = useState('')
-  const [msg, setMsg] = useState('')
-  const [ok, setOk] = useState(false)
-  const [busy, setBusy] = useState(false)
-
-  const fail = (text: string) => {
-    setOk(false)
-    setMsg(text)
-  }
-
-  const save = async () => {
-    if (busy) return
-    const p = normalizeSecret(phrase)
-    const r = normalizeSecret(recovery)
-    if (p.length < MIN_SECRET_LEN || r.length < MIN_SECRET_LEN) {
-      fail(`Each password needs at least ${MIN_SECRET_LEN} characters.`)
-      return
-    }
-    if (p !== normalizeSecret(phrase2)) {
-      fail('The two passwords do not match.')
-      return
-    }
-    if (p === r) {
-      fail('The two passwords must be different.')
-      return
-    }
-    setBusy(true)
-    setMsg('')
-    let saved = false
-    try {
-      saved = await savePhrases(current, phrase, recovery)
-    } catch {
-      saved = false
-    }
-    setBusy(false)
-    if (saved) {
-      setCurrent('')
-      setPhrase('')
-      setPhrase2('')
-      setRecovery('')
-      setOk(true)
-      setMsg('Saved.')
-    } else {
-      fail('Could not save. Check your entries and try again.')
-    }
-  }
-
   const label = 'block text-xs font-medium text-[#193c36]'
 
   return (
     <>
-      <div className={`${card} space-y-4 bg-[#f9ddd4]`}>
+      <div className={`${card} space-y-4 bg-[#f9ddd4]!`}>
         <div className="flex items-center gap-3">
           <div className="grid h-14 w-14 place-items-center rounded-2xl text-xl font-bold text-white" style={{ backgroundColor: accentColor }}>
             {(name.trim()[0] || 'U').toUpperCase()}
@@ -115,7 +52,7 @@ export default function ProfilePage({
         </label>
       </div>
 
-      <div className={`${card} space-y-3 bg-[#d8e8db]`}>
+      <div className={`${card} space-y-3 bg-[#d8e8db]!`}>
         <div className="flex items-center gap-2">
           <UserRound size={18} className="text-[#287354]" />
           <p className="font-bold text-[#193c36]">Your focus</p>
@@ -134,7 +71,7 @@ export default function ProfilePage({
         </div>
       </div>
 
-      <div className={`${card} space-y-3 bg-[#f6df9a]`}>
+      <div className={`${card} space-y-3 bg-[#f6df9a]!`}>
         <div className="flex items-center gap-2">
           <Palette size={18} className="text-[#725a17]" />
           <p className="font-bold text-[#193c36]">App color</p>
@@ -161,7 +98,7 @@ export default function ProfilePage({
         </div>
       </div>
 
-      <div className={`${card} space-y-3 bg-[#e3eef7]`}>
+      <div className={`${card} space-y-3 bg-[#e3eef7]!`}>
         <div className="flex items-center gap-2">
           <Ruler size={18} className="text-[#2b5f8a]" />
           <p className="font-bold text-[#193c36]">Units</p>
@@ -172,51 +109,6 @@ export default function ProfilePage({
         </select>
       </div>
 
-      <div className={`${card} bg-[#ded9eb]`}>
-        <button
-          type="button"
-          onClick={() => setPwOpen((v) => !v)}
-          aria-expanded={pwOpen}
-          className="flex w-full items-center justify-between text-left"
-        >
-          <span className="flex items-center gap-2 font-bold text-[#193c36]">
-            <KeyRound size={18} className="text-[#5d43d6]" /> Passwords
-          </span>
-          <ChevronDown size={18} className={`text-[#5d43d6] transition-transform ${pwOpen ? 'rotate-180' : ''}`} />
-        </button>
-
-        {pwOpen && (
-          <div className="mt-3 space-y-3">
-            <p className="text-xs text-[#687773]">Optional. Update the passwords linked to your profile.</p>
-
-            <label className={label}>
-              Current password
-              <input className={`${field} ${mask} mt-1`} {...off} value={current} onChange={(e) => setCurrent(e.target.value)} />
-            </label>
-            <p className="text-xs text-slate-400">Leave blank if you have not set one yet.</p>
-
-            <label className={label}>
-              New password
-              <input className={`${field} ${mask} mt-1`} {...off} value={phrase} onChange={(e) => setPhrase(e.target.value)} />
-            </label>
-
-            <label className={label}>
-              Confirm new password
-              <input className={`${field} ${mask} mt-1`} {...off} value={phrase2} onChange={(e) => setPhrase2(e.target.value)} />
-            </label>
-
-            <label className={label}>
-              Recovery password
-              <input className={`${field} ${mask} mt-1`} {...off} value={recovery} onChange={(e) => setRecovery(e.target.value)} />
-            </label>
-
-            {msg && <p className={`text-sm ${ok ? 'text-emerald-700' : 'text-red-600'}`}>{msg}</p>}
-            <button disabled={busy} onClick={() => void save()} className={`${primary} w-full disabled:opacity-60`}>
-              {busy ? 'Saving…' : 'Save'}
-            </button>
-          </div>
-        )}
-      </div>
     </>
   )
 }

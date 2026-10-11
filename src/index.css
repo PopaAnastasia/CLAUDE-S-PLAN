@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+/* On a laptop or desktop, show the app inside a phone-sized frame so it looks
+   the way it does on a phone. On real phones none of this applies. */
+@media (min-width: 640px) and (min-height: 640px) {
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    margin: 0;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(circle at 30% 20%, #efece4, #d9d4c7);
+  }
+  #root {
+    width: 390px;
+    height: min(844px, calc(100vh - 56px));
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-radius: 44px;
+    background: #f5f3ed;
+    box-shadow:
+      0 0 0 10px #1c1c1e,
+      0 0 0 12px #3a3a3c,
+      0 30px 70px rgba(25, 30, 28, 0.35);
+    /* Keeps menus and pop-ups inside the frame instead of the whole window. */
+    transform: translateZ(0);
+    scrollbar-width: none;
+  }
+  #root::-webkit-scrollbar {
+    display: none;
+  }
+  #root .min-h-screen {
+    min-height: 100%;
+  }
+}
