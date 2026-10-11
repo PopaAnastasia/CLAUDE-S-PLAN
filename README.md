@@ -9,7 +9,7 @@ Hacklanta 2026 · Track: **Cox Sponsored: Social Good** · Side challenge: **Sho
 | **Live app** | *(add the live link at submission)* |
 | **Demo video** | *(add the public video link)* |
 | **Devpost** | *(add the Devpost link)* |
-| **Team** | [@raidathingz](https://github.com/raidathingz) · [@PopaAnastasia](https://github.com/PopaAnastasia) · [@RainaNicole06](https://github.com/RainaNicole06) |
+| **Team** | [@raidathingz](https://github.com/raidathingz) · [@PopaAnastasia](https://github.com/PopaAnastasia) · [@RainaNicole06](https://github.com/RainaNicole06) | [@Zainab-Isa](https://github.com/Zainab-Isa)
 
 > **Prototype notice.** Daily Fit has not been reviewed by domestic-violence advocates or lawyers, and it is not a substitute for professional help or emergency services. Please use **fake data only** when trying it. If you are in immediate danger, call 911.
 
