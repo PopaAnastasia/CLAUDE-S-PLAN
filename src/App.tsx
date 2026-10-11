@@ -3,6 +3,7 @@ import FitnessApp from './components/FitnessApp'
 import FaqPage from './components/FaqPage'
 import VaultHome from './components/VaultHome'
 import ReceivePage from './components/ReceivePage'
+import EvidenceGuide from './components/EvidenceGuide'
 import { lockVault } from './crypto/vault'
 import { inGrace, isHeld } from './lib/lockGrace'
 
@@ -13,6 +14,13 @@ const isReceive = () => window.location.hash.startsWith('#/receive')
 export default function App() {
   const [screen, setScreen] = useState<Screen>('app')
   const [receive, setReceive] = useState(isReceive())
+  const [showGuide, setShowGuide] = useState(() => {
+    try {
+      return localStorage.getItem('daily.evidenceGuideSeen') !== 'true'
+    } catch {
+      return true
+    }
+  })
   const screenRef = useRef(screen)
   screenRef.current = screen
 
@@ -63,5 +71,19 @@ export default function App() {
   if (receive) return <ReceivePage />
   if (screen === 'real') return <VaultHome onClose={lock} />
   if (screen === 'faq') return <FaqPage onBack={() => setScreen('app')} />
-  return <FitnessApp onResult={(mode) => setScreen(mode === 'real' ? 'real' : 'faq')} />
+  const dismissGuide = () => {
+    setShowGuide(false)
+    try {
+      localStorage.setItem('daily.evidenceGuideSeen', 'true')
+    } catch {
+      // The guide can still be dismissed when storage is unavailable.
+    }
+  }
+
+  return (
+    <>
+      <FitnessApp onResult={(mode) => setScreen(mode === 'real' ? 'real' : 'faq')} />
+      {showGuide && <EvidenceGuide onDone={dismissGuide} />}
+    </>
+  )
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Menu } from 'lucide-react'
+import type { CSSProperties } from 'react'
 import { unlockVault, type VaultMode } from '../crypto/vault'
 import { Dashboard, Workouts } from './Dashboard'
 import ProfilePage from './ProfilePage'
@@ -19,8 +20,11 @@ export default function FitnessApp({
   const [steps, setSteps] = useStored<number>('fit.steps', 6420)
   const [goal, setGoal] = useStored<number>('fit.goal', 10000)
   const [foods, setFoods] = useStored<Food[]>('fit.foods', [])
+  const [mealImage, setMealImage] = useStored<string | null>('fit.mealImage', null)
   const [logs, setLogs] = useStored<Log[]>('fit.logs', [])
   const [size, setSize] = useStored<Size>('fit.size', 'normal')
+  const [accentColor, setAccentColor] = useStored<string>('fit.accentColor', '#5d43d6')
+  const [profileName] = useStored<string>('fit.name', '')
   const [question, setQuestion] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -58,46 +62,53 @@ export default function FitnessApp({
     onResult(mode)
   }
   return (
-    <div className="relative mx-auto flex min-h-screen max-w-md flex-col bg-slate-50 text-slate-800">
-      <header className="sticky top-0 z-10 flex items-center justify-between bg-indigo-600 px-4 py-3 text-white shadow-md">
+    <div
+      className="relative mx-auto flex min-h-screen max-w-md flex-col bg-[#f5f3ed] text-[#193c36]"
+      style={{ '--fit-accent': accentColor } as CSSProperties}
+    >
+      <header className="sticky top-0 z-10 flex items-center justify-between bg-[var(--fit-accent)] px-4 py-3 text-white shadow-md">
         <div className="flex items-center gap-3">
           <button onClick={() => setMenuOpen(true)} aria-label="Menu">
             <Menu size={22} />
           </button>
           <h1 className="text-lg font-bold tracking-wide">{TITLES[page]}</h1>
         </div>
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500 text-sm font-bold">
-          U
-        </div>
+        <button
+          onClick={() => go('profile')}
+          aria-label="Open profile"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-sm font-bold"
+        >
+          {(profileName.trim()[0] || 'U').toUpperCase()}
+        </button>
       </header>
 
       {menuOpen && (
         <div className="fixed inset-y-0 left-1/2 z-30 flex w-full max-w-md -translate-x-1/2">
-          <aside className="flex w-72 flex-col justify-between bg-white shadow-2xl">
+          <aside className="flex w-72 flex-col justify-between bg-[#fbfbf7] shadow-2xl">
             <div>
-              <div className="bg-indigo-600 p-6 text-white">
-                <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-500 text-xl font-bold">
-                  U
+              <div className="bg-[var(--fit-accent)] p-6 text-white">
+                <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-xl font-bold">
+                  {(profileName.trim()[0] || 'U').toUpperCase()}
                 </div>
                 <h2 className="text-lg font-bold">My Profile</h2>
-                <p className="text-xs text-indigo-200">Goal: Stay active</p>
+                <p className="text-xs text-[#ded9eb]">Goal: Stay active</p>
               </div>
               <nav className="space-y-1 p-4">
                 {NAV.map(({ id, label, Icon }) => (
                   <button
                     key={id}
                     onClick={() => go(id)}
-                    className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left font-medium text-slate-700 hover:bg-slate-100"
+                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left font-medium text-[#193c36] hover:bg-[#f5f3ed]"
                   >
-                    <Icon size={20} className="text-indigo-500" />
+                    <Icon size={20} className="text-[#e66c52]" />
                     <span>{label}</span>
                   </button>
                 ))}
               </nav>
             </div>
-            <div className="flex gap-4 border-t border-slate-100 p-4">
-              <button className="text-xs text-slate-400" onClick={() => go('help')}>Help</button>
-              <button className="text-xs text-slate-400" onClick={() => go('contact')}>Contact us</button>
+            <div className="flex gap-4 border-t border-[#e5e6df] p-4">
+              <button className="text-xs text-[#89928f]" onClick={() => go('help')}>Help</button>
+              <button className="text-xs text-[#89928f]" onClick={() => go('contact')}>Contact us</button>
             </div>
           </aside>
           <button
@@ -121,16 +132,24 @@ export default function FitnessApp({
         )}
         {page === 'workouts' && <Workouts onLog={logWorkout} />}
         {page === 'calories' && (
-          <Calories foods={foods} setFoods={setFoods} totalKcal={totalKcal} />
+          <Calories
+            foods={foods}
+            setFoods={setFoods}
+            totalKcal={totalKcal}
+            mealImage={mealImage}
+            setMealImage={setMealImage}
+          />
         )}
         {page === 'steps' && <Steps steps={steps} setSteps={setSteps} goal={goal} />}
         {page === 'settings' && <SettingsPage goal={goal} setGoal={setGoal} />}
         {page === 'fonts' && <FontsPage size={size} setSize={setSize} />}
-        {page === 'profile' && <ProfilePage />}
+        {page === 'profile' && (
+          <ProfilePage accentColor={accentColor} setAccentColor={setAccentColor} />
+        )}
 
         {page === 'help' && (
           <>
-            <p className="text-sm text-slate-500">
+            <p className="rounded-2xl bg-[#d8e8db] p-4 text-sm text-[#287354]">
               Find answers about syncing, tracking and settings, or ask us a question.
             </p>
             <div className="space-y-2">
@@ -140,14 +159,14 @@ export default function FitnessApp({
                 ['Do I need an account?', 'No. Your logs stay on this device.'],
               ].map(([q, a]) => (
                 <details key={q} className={card}>
-                  <summary className="cursor-pointer text-sm font-semibold text-slate-700">{q}</summary>
-                  <p className="mt-2 text-xs text-slate-500">{a}</p>
+                  <summary className="cursor-pointer text-sm font-semibold text-[#193c36]">{q}</summary>
+                  <p className="mt-2 text-xs text-[#687773]">{a}</p>
                 </details>
               ))}
             </div>
-            <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-100 p-4">
-              <p className="text-sm font-bold text-slate-700">Ask a question</p>
-              <p className="text-xs text-slate-500">
+            <div className="space-y-2 rounded-2xl bg-[#ded9eb] p-4">
+              <p className="text-sm font-bold text-[#193c36]">Ask a question</p>
+              <p className="text-xs text-[#687773]">
                 Can&apos;t find your answer? Search our help articles.
               </p>
               <div className="flex gap-2">
@@ -177,21 +196,21 @@ export default function FitnessApp({
         )}
 
         {page === 'contact' && (
-          <div className={card}>
-            <p className="text-sm text-slate-600">Email: support@dailyfit.example</p>
-            <p className="mt-1 text-xs text-slate-400">
+          <div className={`${card} bg-[#f9ddd4]`}>
+            <p className="text-sm text-[#d65d46]">Email: support@dailyfit.example</p>
+            <p className="mt-1 text-xs text-[#89928f]">
               We usually reply within 2 business days.
             </p>
           </div>
         )}
       </main>
 
-      <footer className="sticky bottom-0 flex justify-around border-t border-slate-100 bg-white py-2 text-xs">
+      <footer className="sticky bottom-0 flex justify-around border-t border-[#e5e6df] bg-[#fbfbf7] py-2 text-xs">
         {TABS.map(({ id, label, Icon }) => (
           <button
             key={id}
             onClick={() => go(id)}
-            className={`flex flex-col items-center gap-0.5 ${page === id ? 'text-indigo-600' : 'text-slate-400'}`}
+            className={`flex flex-col items-center gap-0.5 ${page === id ? 'text-[var(--fit-accent)]' : 'text-[#89928f]'}`}
           >
             <Icon size={18} />
             {label}
