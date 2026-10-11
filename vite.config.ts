@@ -3,7 +3,10 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const base = process.env.GITHUB_ACTIONS ? '/CLAUDE-S-PLAN/' : '/'
+
 export default defineConfig({
+  base,
   plugins: [
     react(),
     tailwindcss(),
@@ -15,7 +18,7 @@ export default defineConfig({
         short_name: 'Daily Fit',
         description: 'Simple daily fitness tracker',
         display: 'standalone',
-        start_url: '/',
+        start_url: base,
         background_color: '#ffffff',
         theme_color: '#4f46e5',
         icons: [
