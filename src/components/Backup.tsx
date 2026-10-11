@@ -80,8 +80,8 @@ export default function Backup({ onChanged }: { onChanged: () => void }) {
         <h3 className="font-semibold">Create an encrypted backup</h3>
         <p className="text-xs text-slate-500">
           Saves one file with everything in your journal. It is locked with a one-time code of five
-          words. Give the file to someone you trust, and tell them the code in a different way
-          (in person or by phone), not in the same message.
+          words generated for this backup. Give the file to someone you trust, and tell them the
+          code in a different way (in person or by phone), not in the same message.
         </p>
         <button onClick={make} disabled={busy} className={primary}>
           <Download size={14} className="mr-1 inline" /> {busy ? 'Working…' : 'Create backup'}

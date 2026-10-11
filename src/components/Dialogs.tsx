@@ -47,7 +47,8 @@ export function SavedNotice({
         advocate or lawyer.
       </p>
       <p className="mt-2 text-xs text-slate-500">
-        A copy is encrypted and opens only with a code you choose to give them.
+        A copy is encrypted and opens only with the app link and the one-time code shown after
+        backup creation.
       </p>
       <div className="mt-4 flex justify-end gap-2">
         <button onClick={onDone} className={`${btn} border border-slate-300 text-slate-700`}>Done</button>
