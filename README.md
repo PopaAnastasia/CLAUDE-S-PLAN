@@ -2,18 +2,39 @@
 
 **A fitness tracker that hides a private, tamper-evident evidence journal. Everything stays on the phone.**
 
-Hacklanta 2026 · Track: Cox Social Good *(TODO: confirm track and list only the sponsor challenges we are genuinely entering)*
+Hacklanta 2026 · Track: **Cox Sponsored: Social Good** · Side challenge: **Shock Tracker: Zero Data**
 
 | | |
 |---|---|
-| **Live app** | TODO: paste the Netlify link |
-| **Demo video** | TODO: paste the public video link |
-| **Devpost** | TODO: paste the Devpost link |
+| **Live app** | *(add the live link at submission)* |
+| **Demo video** | *(add the public video link)* |
+| **Devpost** | *(add the Devpost link)* |
 | **Team** | [@raidathingz](https://github.com/raidathingz) · [@PopaAnastasia](https://github.com/PopaAnastasia) · [@RainaNicole06](https://github.com/RainaNicole06) |
 
 > **Prototype notice.** Daily Fit has not been reviewed by domestic-violence advocates or lawyers, and it is not a substitute for professional help or emergency services. Please use **fake data only** when trying it. If you are in immediate danger, call 911.
 
 ---
+
+## Hackathon track and challenge
+
+**Main track: Cox Sponsored: Social Good.** The track asks us to "build for the people and places that get overlooked: access, safety, mobility, and the everyday systems communities run on."
+
+- **Overlooked people.** People living with abuse are poorly served by tools that assume the phone is safe, the user can make an account, and a cloud is trustworthy.
+- **Safety.** The app looks like an ordinary fitness tracker, hides the journal behind a private phrase, and never mentions the journal anywhere a casual user can see.
+- **Access.** It is free, needs no account and no app store, works on any phone with a modern browser, installs from a link, and works offline.
+- **Everyday systems.** It produces a record that shows whether it was changed after saving, plus a one-time encrypted copy that can be shared with an advocate or lawyer.
+
+**Side challenge: Shock Tracker: Zero Data.** The challenge asks for "a simple, useful tool with no accounts, tracking, profiles, or stored personal info, to prove useful software doesn't need user data."
+
+| Requirement | How Daily Fit meets it |
+|---|---|
+| No accounts | There is no sign-in of any kind. The hosting service only serves static files. |
+| No tracking | No analytics, ads, third-party scripts or fonts, and no network requests for user data (we checked in the browser). |
+| No profiles | No profile exists on any server. The Profile page (display name, color, units) is saved only in the user's own browser; we never receive it. |
+| No stored personal info | We store none. Everything a person enters stays encrypted on their own device. Nothing is sent to us. |
+| Useful without user data | A sensitive tool (private logging, verification, backup and sharing) works with no server at all. |
+
+*How we read "zero data":* zero data collected, sent or held by us. The journal itself is stored on the user's own phone, under their control and encrypted, because that is the product. We want to be upfront about this reading.
 
 ## Table of contents
 
@@ -33,7 +54,7 @@ Hacklanta 2026 · Track: Cox Social Good *(TODO: confirm track and list only the
 14. [Project structure](#14-project-structure)
 15. [Tech stack and attributions](#15-tech-stack-and-attributions)
 16. [Roadmap](#16-roadmap)
-17. [How this was built (disclosure)](#17-how-this-was-built-disclosure)
+17. [How this was built](#17-how-this-was-built)
 
 ---
 
@@ -313,11 +334,13 @@ Things we would do next, in rough priority:
 7. **More disguises** and a native wrapper for background shortcuts.
 8. **Security audit** and a written threat model.
 
-## 17. How this was built (disclosure)
+## 17. How this was built
 
-TODO (team): check the Hacklanta rules on pre-existing work and state it here exactly. For example: *what existed before the event* (our written spec and early scaffold) and *what we built during it* (the working app, tests and this documentation).
+**Team work.** We made the product, safety and architecture decisions: the fitness-app disguise, entering the journal through the Help question box, the decoy phrase that looks identical to any other input, no backend, entries that cannot be edited or deleted, no erase option, and encrypted backup instead of cloud sync. We built and iterated on the interface and the fitness features, set up the project and PWA, worked through branches, pull requests and merges in Git, debugged build and environment problems, ran the app in browsers and on phones, and deployed it.
 
-An AI coding assistant (Claude) helped design, write and test code and documentation. The team directed the product decisions, ran and tested the app, and reviewed the results. Security-critical code (vault, encryption, hash chain, backup format) was tested with the automated tests listed in [section 10](#10-what-we-tested-and-what-we-did-not), but has **not** had an independent audit.
+**AI assistance.** We used an AI coding assistant (Claude) under our direction. It helped write and test parts of the code, in particular the encrypted storage, the hash chain, the backup format and the automated tests listed in [section 10](#10-what-we-tested-and-what-we-did-not). We ran and checked the results, but that code has **not** had an independent security audit.
+
+**Before the event vs. during it.** *(Fill in after checking the Hacklanta rules: what existed beforehand, such as our written spec and early scaffold, and what was built during the event.)*
 
 ---
 
