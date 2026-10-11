@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Palette, UserRound } from 'lucide-react'
+import { Check, ChevronDown, KeyRound, Palette, Ruler, UserRound } from 'lucide-react'
 import { MIN_SECRET_LEN, normalizeSecret, savePhrases } from '../crypto/vault'
 import { card, field, primary, useStored } from './data'
 
@@ -30,6 +30,8 @@ export default function ProfilePage({
   const [name, setName] = useStored<string>('fit.name', '')
   const [bio, setBio] = useStored<string>('fit.bio', '')
   const [focus, setFocus] = useStored<string>('fit.focus', 'Build consistency')
+  const [units, setUnits] = useStored<string>('fit.units', 'Imperial')
+  const [pwOpen, setPwOpen] = useState(false)
   const [current, setCurrent] = useState('')
   const [phrase, setPhrase] = useState('')
   const [phrase2, setPhrase2] = useState('')
@@ -48,15 +50,15 @@ export default function ProfilePage({
     const p = normalizeSecret(phrase)
     const r = normalizeSecret(recovery)
     if (p.length < MIN_SECRET_LEN || r.length < MIN_SECRET_LEN) {
-      fail(`Each phrase needs at least ${MIN_SECRET_LEN} characters.`)
+      fail(`Each password needs at least ${MIN_SECRET_LEN} characters.`)
       return
     }
     if (p !== normalizeSecret(phrase2)) {
-      fail('The two security phrases do not match.')
+      fail('The two passwords do not match.')
       return
     }
     if (p === r) {
-      fail('The two phrases must be different.')
+      fail('The two passwords must be different.')
       return
     }
     setBusy(true)
@@ -159,63 +161,61 @@ export default function ProfilePage({
         </div>
       </div>
 
-      <div className={`${card} space-y-3 bg-[#ded9eb]`}>
-        <p className="font-bold text-[#193c36]">Security</p>
-        <p className="text-xs text-[#687773]">
-          Optional. Used to verify your identity when you contact Help.
-        </p>
+      <div className={`${card} space-y-3 bg-[#e3eef7]`}>
+        <div className="flex items-center gap-2">
+          <Ruler size={18} className="text-[#2b5f8a]" />
+          <p className="font-bold text-[#193c36]">Units</p>
+        </div>
+        <select className={field} aria-label="Units" value={units} onChange={(e) => setUnits(e.target.value)}>
+          <option>Imperial (lb, mi)</option>
+          <option>Metric (kg, km)</option>
+        </select>
+      </div>
 
-        <label className={label}>
-          Current security phrase
-          <input
-            className={`${field} ${mask} mt-1`}
-            {...off}
-            value={current}
-            onChange={(e) => setCurrent(e.target.value)}
-          />
-        </label>
-        <p className="text-xs text-slate-400">Leave blank if you have not set one yet.</p>
-
-        <label className={label}>
-          New security phrase
-          <input
-            className={`${field} ${mask} mt-1`}
-            {...off}
-            value={phrase}
-            onChange={(e) => setPhrase(e.target.value)}
-          />
-        </label>
-
-        <label className={label}>
-          Confirm security phrase
-          <input
-            className={`${field} ${mask} mt-1`}
-            {...off}
-            value={phrase2}
-            onChange={(e) => setPhrase2(e.target.value)}
-          />
-        </label>
-
-        <label className={label}>
-          Recovery phrase
-          <input
-            className={`${field} ${mask} mt-1`}
-            {...off}
-            value={recovery}
-            onChange={(e) => setRecovery(e.target.value)}
-          />
-        </label>
-
-        {msg && (
-          <p className={`text-sm ${ok ? 'text-emerald-700' : 'text-red-600'}`}>{msg}</p>
-        )}
+      <div className={`${card} bg-[#ded9eb]`}>
         <button
-          disabled={busy}
-          onClick={() => void save()}
-          className={`${primary} w-full disabled:opacity-60`}
+          type="button"
+          onClick={() => setPwOpen((v) => !v)}
+          aria-expanded={pwOpen}
+          className="flex w-full items-center justify-between text-left"
         >
-          {busy ? 'Saving…' : 'Save'}
+          <span className="flex items-center gap-2 font-bold text-[#193c36]">
+            <KeyRound size={18} className="text-[#5d43d6]" /> Passwords
+          </span>
+          <ChevronDown size={18} className={`text-[#5d43d6] transition-transform ${pwOpen ? 'rotate-180' : ''}`} />
         </button>
+
+        {pwOpen && (
+          <div className="mt-3 space-y-3">
+            <p className="text-xs text-[#687773]">Optional. Update the passwords linked to your profile.</p>
+
+            <label className={label}>
+              Current password
+              <input className={`${field} ${mask} mt-1`} {...off} value={current} onChange={(e) => setCurrent(e.target.value)} />
+            </label>
+            <p className="text-xs text-slate-400">Leave blank if you have not set one yet.</p>
+
+            <label className={label}>
+              New password
+              <input className={`${field} ${mask} mt-1`} {...off} value={phrase} onChange={(e) => setPhrase(e.target.value)} />
+            </label>
+
+            <label className={label}>
+              Confirm new password
+              <input className={`${field} ${mask} mt-1`} {...off} value={phrase2} onChange={(e) => setPhrase2(e.target.value)} />
+            </label>
+
+            <label className={label}>
+              Recovery password
+              <input className={`${field} ${mask} mt-1`} {...off} value={recovery} onChange={(e) => setRecovery(e.target.value)} />
+            </label>
+
+            {msg && <p className={`text-sm ${ok ? 'text-emerald-700' : 'text-red-600'}`}>{msg}</p>}
+            <button disabled={busy} onClick={() => void save()} className={`${primary} w-full disabled:opacity-60`}>
+              {busy ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+        )}
       </div>
     </>
   )

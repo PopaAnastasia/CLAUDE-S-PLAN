@@ -3,7 +3,7 @@ import FitnessApp from './components/FitnessApp'
 import FaqPage from './components/FaqPage'
 import VaultHome from './components/VaultHome'
 import ReceivePage from './components/ReceivePage'
-import EvidenceGuide from './components/EvidenceGuide'
+import WelcomeTour from './components/WelcomeTour'
 import { lockVault } from './crypto/vault'
 import { inGrace, isHeld } from './lib/lockGrace'
 
@@ -16,7 +16,7 @@ export default function App() {
   const [receive, setReceive] = useState(isReceive())
   const [showGuide, setShowGuide] = useState(() => {
     try {
-      return localStorage.getItem('daily.evidenceGuideSeen') !== 'true'
+      return localStorage.getItem('daily.tourSeen') !== 'true'
     } catch {
       return true
     }
@@ -74,7 +74,7 @@ export default function App() {
   const dismissGuide = () => {
     setShowGuide(false)
     try {
-      localStorage.setItem('daily.evidenceGuideSeen', 'true')
+      localStorage.setItem('daily.tourSeen', 'true')
     } catch {
       // The guide can still be dismissed when storage is unavailable.
     }
@@ -83,7 +83,7 @@ export default function App() {
   return (
     <>
       <FitnessApp onResult={(mode) => setScreen(mode === 'real' ? 'real' : 'faq')} />
-      {showGuide && <EvidenceGuide onDone={dismissGuide} />}
+      {showGuide && <WelcomeTour onDone={dismissGuide} />}
     </>
   )
 }
