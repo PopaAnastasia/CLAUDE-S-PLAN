@@ -1,14 +1,30 @@
-import { Check, Dumbbell, Flame, Search } from 'lucide-react'
+import { Check, Dumbbell, Flame, Footprints, Lightbulb, Search } from 'lucide-react'
 import { useState } from 'react'
 import Bar from './Bar'
 import {
-  KCAL_GOAL, WORKOUTS, card, field, primary,
+  WORKOUTS, card, field, primary,
   type Log, type Page, type Workout,
 } from './data'
 
+const TIPS = [
+  'Short walks after meals add up. Ten minutes is a great start.',
+  'Drink a glass of water before your workout to stay energized.',
+  'Rest days count too. Recovery is part of getting stronger.',
+  'Stretch for five minutes after sitting for a long time.',
+  'Consistency beats intensity. Show up a little every day.',
+  'Take the stairs when you can. Every step moves your goal.',
+  'A good night of sleep makes tomorrow\'s workout easier.',
+]
+
+const greeting = () => {
+  const h = new Date().getHours()
+  return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
+}
+
 export function Dashboard({
-  steps, goal, burned, totalKcal, logs, go,
+  name, steps, goal, burned, totalKcal, logs, go,
 }: {
+  name: string
   steps: number
   goal: number
   burned: number
@@ -16,49 +32,86 @@ export function Dashboard({
   logs: Log[]
   go: (p: Page) => void
 }) {
+  const pct = goal > 0 ? Math.min(100, Math.round((steps / goal) * 100)) : 0
+  const today = new Date()
+  const tip = TIPS[today.getDay() % TIPS.length]
+  const tiles = [
+    { page: 'steps' as Page, Icon: Footprints, label: 'Steps', value: `${pct}%`, tint: 'bg-[#d8e8db]', color: 'text-[#287354]' },
+    { page: 'calories' as Page, Icon: Flame, label: 'Eaten', value: `${totalKcal}`, tint: 'bg-[#f9ddd4]', color: 'text-[#d65d46]' },
+    { page: 'workouts' as Page, Icon: Dumbbell, label: 'Workouts', value: `${logs.length}`, tint: 'bg-[#ded9eb]', color: 'text-[var(--fit-accent)]' },
+  ]
   return (
     <>
-      <div className="rounded-2xl bg-[#5d43d6] p-5 text-white shadow-md">
-        <p className="text-sm uppercase tracking-wider text-[#ded9eb]">Today&apos;s progress</p>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-[#89928f]">
+          {today.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
+        </p>
+        <h2 className="text-2xl font-bold text-[#193c36]">
+          {greeting()}{name.trim() ? `, ${name.trim().split(' ')[0]}` : ''}
+        </h2>
+      </div>
+
+      <div className="relative overflow-hidden rounded-3xl bg-[var(--fit-accent)] p-5 text-white shadow-md">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10" />
+        <div className="pointer-events-none absolute -bottom-12 right-16 h-28 w-28 rounded-full bg-white/10" />
+        <p className="text-xs font-semibold uppercase tracking-wider text-white/75">Today&apos;s progress</p>
         <div className="mt-2 flex items-end justify-between">
           <div>
             <span className="text-4xl font-extrabold">{steps.toLocaleString()}</span>
-            <span className="text-sm text-[#ded9eb]"> / {goal.toLocaleString()} steps</span>
+            <span className="text-sm text-white/75"> / {goal.toLocaleString()} steps</span>
           </div>
           <div className="text-right">
             <span className="text-xl font-bold">{burned}</span>
-            <span className="block text-xs text-[#ded9eb]">Kcal burned</span>
+            <span className="block text-xs text-white/75">kcal burned</span>
           </div>
         </div>
         <div className="mt-4">
           <Bar value={steps} goal={goal} light />
         </div>
+        <p className="mt-2 text-xs text-white/80">
+          {pct >= 100 ? 'Goal reached. Nice work!' : `${(goal - steps).toLocaleString()} steps to reach your goal`}
+        </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <button onClick={() => go('workouts')} className={`${card} text-left`}>
-          <Dumbbell className="mb-2 text-[#e66c52]" />
-          <p className="font-bold text-[#193c36]">Workouts</p>
-          <p className="text-xs text-[#89928f]">{logs.length} logged</p>
-        </button>
-        <button onClick={() => go('calories')} className={`${card} text-left`}>
-          <Flame className="mb-2 text-[#e66c52]" />
-          <p className="font-bold text-[#193c36]">Calorie Tracker</p>
-          <p className="text-xs text-[#89928f]">{totalKcal} / {KCAL_GOAL} kcal</p>
-        </button>
+      <div className="grid grid-cols-3 gap-3">
+        {tiles.map(({ page, Icon, label, value, tint, color }) => (
+          <button key={label} onClick={() => go(page)} className={`rounded-2xl ${tint} p-3 text-left`}>
+            <Icon size={18} className={color} />
+            <p className="mt-2 text-xl font-extrabold text-[#193c36]">{value}</p>
+            <p className="text-[11px] font-semibold text-[#687773]">{label}</p>
+          </button>
+        ))}
+      </div>
+
+      <div className="flex gap-3 rounded-2xl bg-[#f6df9a] p-4">
+        <Lightbulb size={20} className="mt-0.5 shrink-0 text-[#725a17]" />
+        <div>
+          <p className="text-sm font-bold text-[#193c36]">Tip of the day</p>
+          <p className="text-xs text-[#725a17]">{tip}</p>
+        </div>
       </div>
 
       <div className={card}>
-        <p className="mb-2 font-bold text-[#193c36]">Recent activity</p>
+        <div className="mb-2 flex items-center justify-between">
+          <p className="font-bold text-[#193c36]">Recent activity</p>
+          <button onClick={() => go('workouts')} className="text-xs font-semibold text-[var(--fit-accent)]">
+            Log a workout
+          </button>
+        </div>
         {logs.length === 0 && (
-          <p className="text-sm text-[#89928f]">No activity logged yet.</p>
+          <p className="rounded-xl bg-[#f5f3ed] p-4 text-center text-sm text-[#89928f]">
+            No activity logged yet. Pick a session from Workouts to get started.
+          </p>
         )}
         {logs.slice(0, 3).map((l) => (
           <div
             key={l.id}
-            className="flex items-center justify-between border-t border-[#e5e6df] py-2 text-sm"
+            className="flex items-center gap-3 border-t border-[#e5e6df] py-2.5 text-sm first-of-type:border-t-0"
           >
-            <div>
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#f9ddd4]">
+              <Dumbbell size={16} className="text-[#e66c52]" />
+            </span>
+            <div className="flex-1">
               <p className="font-semibold text-[#193c36]">{l.name}</p>
               <p className="text-xs text-[#89928f]">{l.mins} mins · {l.kcal} kcal</p>
             </div>
@@ -90,7 +143,7 @@ export function Workouts({ onLog }: { onLog: (w: Workout) => void }) {
   return (
     <>
       <div>
-        <h2 className="text-xl font-bold text-[#5d43d6]">Workout library</h2>
+        <h2 className="text-xl font-bold text-[var(--fit-accent)]">Workout library</h2>
         <p className="mt-1 text-sm text-[#687773]">Find a session and keep your activity streak moving.</p>
       </div>
       <div className="relative">
@@ -107,7 +160,7 @@ export function Workouts({ onLog }: { onLog: (w: Workout) => void }) {
           <button
             key={type}
             onClick={() => setFilter(type)}
-            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium ${filter === type ? 'bg-[#5d43d6] text-white' : 'bg-white text-[#687773] shadow-sm'}`}
+            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium ${filter === type ? 'bg-[var(--fit-accent)] text-white' : 'bg-white text-[#687773] shadow-sm'}`}
           >
             {type}
           </button>

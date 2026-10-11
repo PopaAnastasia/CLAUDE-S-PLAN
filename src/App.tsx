@@ -1,19 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
 import FitnessApp from './components/FitnessApp'
-import FaqPage from './components/FaqPage'
 import VaultHome from './components/VaultHome'
+import { SetupPage } from './components/Phrases'
 import ReceivePage from './components/ReceivePage'
 import WelcomeTour from './components/WelcomeTour'
+import Splash, { shouldShowSplash } from './components/Splash'
 import { lockVault } from './crypto/vault'
 import { inGrace, isHeld } from './lib/lockGrace'
+import { renewMotion } from './lib/useShake'
 
-type Screen = 'app' | 'real' | 'faq'
+type Screen = 'app' | 'real' | 'setup'
 const IDLE_MS = 2 * 60 * 1000
 const isReceive = () => window.location.hash.startsWith('#/receive')
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('app')
   const [receive, setReceive] = useState(isReceive())
+  const [splash, setSplash] = useState(() => !isReceive() && shouldShowSplash())
   const [showGuide, setShowGuide] = useState(() => {
     try {
       return localStorage.getItem('daily.tourSeen') !== 'true'
@@ -28,6 +31,22 @@ export default function App() {
     lockVault()
     setScreen('app')
   }
+
+  // Motion (for walks and shake-to-exit) is renewed on the first tap of each
+  // launch. iPhone requires a tap for this, but stays silent once allowed.
+  useEffect(() => {
+    const once = () => {
+      renewMotion()
+      window.removeEventListener('click', once, true)
+      window.removeEventListener('touchend', once, true)
+    }
+    window.addEventListener('click', once, true)
+    window.addEventListener('touchend', once, true)
+    return () => {
+      window.removeEventListener('click', once, true)
+      window.removeEventListener('touchend', once, true)
+    }
+  }, [])
 
   useEffect(() => {
     const h = () => setReceive(isReceive())
@@ -70,7 +89,7 @@ export default function App() {
 
   if (receive) return <ReceivePage />
   if (screen === 'real') return <VaultHome onClose={lock} />
-  if (screen === 'faq') return <FaqPage onBack={() => setScreen('app')} />
+  if (screen === 'setup') return <SetupPage onDone={() => setScreen('real')} onCancel={() => setScreen('app')} />
   const dismissGuide = () => {
     setShowGuide(false)
     try {
@@ -82,8 +101,12 @@ export default function App() {
 
   return (
     <>
-      <FitnessApp onResult={(mode) => setScreen(mode === 'real' ? 'real' : 'faq')} />
-      {showGuide && <WelcomeTour onDone={dismissGuide} />}
+      <FitnessApp
+        onResult={(mode) => mode === 'real' && setScreen('real')}
+        onSetup={() => setScreen('setup')}
+      />
+      {showGuide && !splash && <WelcomeTour onDone={dismissGuide} />}
+      {splash && <Splash onDone={() => setSplash(false)} />}
     </>
   )
 }

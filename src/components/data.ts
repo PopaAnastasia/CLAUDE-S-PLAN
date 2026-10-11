@@ -22,7 +22,7 @@ export const KCAL_GOAL = 2000
 export const GOALS = [5000, 8000, 10000, 12000]
 
 export const TITLES: Record<Page, string> = {
-  dashboard: 'Daily Fit',
+  dashboard: 'Shake',
   workouts: 'Workouts',
   calories: 'Calorie Tracker',
   steps: 'Step Counter',
@@ -59,7 +59,7 @@ export const WORKOUTS = [
 export type Workout = (typeof WORKOUTS)[number]
 
 export const card = 'rounded-2xl border border-[#e5e6df] bg-white p-4 shadow-sm'
-export const field = 'w-full rounded-xl border border-[#cdd2ce] bg-white px-3 py-2 text-sm text-[#193c36] outline-none focus:border-[#5d43d6] focus:ring-2 focus:ring-[#ded9eb]'
+export const field = 'w-full rounded-xl border border-[#cdd2ce] bg-white px-3 py-2 text-sm text-[#193c36] outline-none focus:border-[#523acb] focus:ring-2 focus:ring-[#ded9eb]'
 export const primary = 'rounded-xl bg-[var(--fit-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90'
 
 // Saves ordinary fitness data only. Never store anything private here.
@@ -81,4 +81,17 @@ export function useStored<T>(key: string, initial: T) {
     }
   }
   return [value, save] as const
+}
+// Local calendar day, e.g. "2026-10-11", so "today" follows the phone's clock.
+export const dayKey = (d: Date | number | string = new Date()) => {
+  const x = new Date(d)
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`
+}
+
+// Like useStored, but the value belongs to one day: a new day starts from `initial`.
+export function useDaily<T>(key: string, initial: T, today: string) {
+  const [saved, setSaved] = useStored<{ day: string; value: T } | null>(key, null)
+  const value = saved && saved.day === today ? saved.value : initial
+  const set = (v: T) => setSaved({ day: today, value: v })
+  return [value, set] as const
 }
