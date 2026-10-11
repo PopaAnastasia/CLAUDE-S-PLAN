@@ -6,8 +6,8 @@ Hacklanta 2026 · Track: **Cox Sponsored: Social Good** · Side challenge: **Sho
 
 | | |
 |---|---|
-| **Live app** | *(add the live link at submission)* |
-| **Demo video** | *(add the public video link)* |
+| **Live app** | *https://shake-fit.netlify.app/* |
+| **Demo video** | *(https://youtu.be/0gVkneUBBo8)* |
 | **Devpost** | *(add the Devpost link)* |
 | **Team** | [@raidathingz](https://github.com/raidathingz) · [@PopaAnastasia](https://github.com/PopaAnastasia) · [@RainaNicole06](https://github.com/RainaNicole06) · [@Zainab-Isa](https://github.com/Zainab-Isa) |
 
